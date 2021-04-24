@@ -1,0 +1,13 @@
+name: FunnyClasses
+version: ${project.version}
+main: me.lucasvalenca.funnyclasses.FunnyClasses
+api-version: 1.16
+authors: [ lucasvalenca ]
+description: Adiciona classes ao jogo! Cada uma com seus pontos positivos e negativos
+commands:
+  escolher:
+    descripion: Escolha uma classe. Protetor, engenheiro, sonhador, etc
+    usage: /<command>
+  lightmode:
+    description: Ativa o lightmode "/lightmode on", ativando as partículas ou desliga o lightmode "/lightmode off" tirando as partículas
+    usage: /<command>
