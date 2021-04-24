@@ -150,6 +150,13 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
                     protetorOfPlayer.get(player).puloPesado();
                 }
             }
+        } else if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_HOE
+                && classOfPlayer.get(player).equalsIgnoreCase("Protetor")) {
+            if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    protetorOfPlayer.get(player).sobreVisao();
+                }
+            }
         }
         return true;
     }
@@ -188,7 +195,6 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
 
     @EventHandler
     public boolean entityDeath(EntityDeathEvent event) {
-        System.out.println("Chegou aqui");
         for (Map.Entry<Player, Protetor> entry : protetorOfPlayer.entrySet()) {
             Entity holded = entry.getValue().getHolded();
             Entity dead_entity = event.getEntity();

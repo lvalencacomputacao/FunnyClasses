@@ -21,6 +21,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import java.lang.Math;
 import java.util.List;
+import java.util.Random;
 
 public class Sonhador {
     int nivel;
@@ -62,54 +63,48 @@ public class Sonhador {
         if (isOnCoolDownSuperPulo) {
             player.sendMessage("A habilidade está em cooldown");
         } else {
-            //this.player.getWorld().playSound(this.player.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 1, 2);
             Vector velocidade = this.player.getVelocity();
             this.player.setVelocity(new Vector(velocidade.getX(), 3.0, velocidade.getZ()));
             isOnCoolDownSuperPulo = true;
-            BukkitTask taskSuperPulo = new coolDownSuperPulo(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
+            BukkitTask cd = new coolDownSuperPulo(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
         }
     }
 
     public void teleportar() {
         if (isOnCoolDownTeleportar) {
-            if (isOnCoolDownTNTCombo) {
-                //this.player.sendMessage("A Habilidade (e combo) estão em cooldown");
-                return;
-            }
             return;
-        } else {
-            Block block = player.getTargetBlock(null, 150);
-            Location locationToTeleport = block.getLocation();
-            locationToTeleport.setY(locationToTeleport.getY() + 1);
-            float currentPitch = player.getLocation().getPitch();
-            float currentYaw = player.getLocation().getYaw();
-            locationToTeleport.setPitch(currentPitch);
-            locationToTeleport.setYaw(currentYaw);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2 * 20, 5));
-            player.teleport(locationToTeleport);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3 * 20, 2));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 8 * 20, 0));
-
-            World world = player.getWorld();
-
-            double x = locationToTeleport.getX();
-            double y = locationToTeleport.getY();
-            double z = locationToTeleport.getZ();
-
-            int radius = 5;
-            for (int i = 0; i < 3; i++) {
-                world.strikeLightning(new Location(world, x + i - 1, y, z + radius));
-                world.strikeLightning(new Location(world, x + i - 1, y, z - radius));
-            }
-            for (int i = 0; i < 3; i++) {
-                world.strikeLightning(new Location(world, x + radius, y, z + i - 1));
-                world.strikeLightning(new Location(world, x - radius, y, z + i - 1));
-            }
-            this.isOnCoolDownTeleportar = true;
-            BukkitTask taskTeleportar = new coolDownTeleportar(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
-            this.firstCombo = true;
-            BukkitTask task_first = new firstComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
         }
+        Block block = player.getTargetBlock(null, 150);
+        Location locationToTeleport = block.getLocation();
+        locationToTeleport.setY(locationToTeleport.getY() + 1);
+        float currentPitch = player.getLocation().getPitch();
+        float currentYaw = player.getLocation().getYaw();
+        locationToTeleport.setPitch(currentPitch);
+        locationToTeleport.setYaw(currentYaw);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2 * 20, 5));
+        player.teleport(locationToTeleport);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3 * 20, 2));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 8 * 20, 0));
+
+        World world = player.getWorld();
+
+        double x = locationToTeleport.getX();
+        double y = locationToTeleport.getY();
+        double z = locationToTeleport.getZ();
+
+        int radius = 5;
+        for (int i = 0; i < 3; i++) {
+            world.strikeLightning(new Location(world, x + i - 1, y, z + radius));
+            world.strikeLightning(new Location(world, x + i - 1, y, z - radius));
+        }
+        for (int i = 0; i < 3; i++) {
+            world.strikeLightning(new Location(world, x + radius, y, z + i - 1));
+            world.strikeLightning(new Location(world, x - radius, y, z + i - 1));
+        }
+        this.isOnCoolDownTeleportar = true;
+        BukkitTask cd = new coolDownTeleportar(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
+        this.firstCombo = true;
+        BukkitTask timer = new firstComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
     }
 
     public void TNTCombo(Entity damaged) {
@@ -135,7 +130,7 @@ public class Sonhador {
             this.thirdCombo = false;
             this.comboCompleto = true;
             player.sendMessage("<Combo Completo>");
-            BukkitTask task_completo = new comboCompletoOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
+            BukkitTask timer = new comboCompletoOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
         }
 
         if (resetarCoolDown2) {
@@ -146,7 +141,7 @@ public class Sonhador {
             this.player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 8 * 20, 1));
             this.secondCombo = false;
             this.thirdCombo = true;
-            BukkitTask task_third = new thirdComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
+            BukkitTask timer = new thirdComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
 
         }
         if (resetarCoolDown) {
@@ -154,10 +149,9 @@ public class Sonhador {
             this.firstCombo = false;
             this.secondCombo = true;
             this.player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 8 * 20, 1));
-            BukkitTask task_second = new secondComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
+            BukkitTask timer = new secondComboOff(this.plugin, this).runTaskLater(this.plugin, 2 * 20);
             player.sendMessage("Primeiro...");
         }
-        //player.sendMessage(damaged.getName());
         float player_yaw = this.player.getLocation().getYaw();
         Location location_damaged = damaged.getLocation();
         double x = location_damaged.getX();
@@ -167,13 +161,8 @@ public class Sonhador {
         player_location.setPitch(90);
         player_location.setYaw(player_yaw);
         this.player.teleport(player_location);
-        //TNTPrimed tnt = this.player.getWorld().spawn(damaged.getLocation(), TNTPrimed.class);
-        //tnt.setFuseTicks(5);
         this.player.getWorld().createExplosion(damaged.getLocation(), 2, false, false);
         this.player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2 * 20, 2));
-        //this.isOnCoolDownTNTCombo = !(resetarCoolDown || resetarCoolDown2);
-        //BukkitTask task = new coolDownTNTCombo(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
-
     }
 
     public void dash(Boolean lightmode) {
@@ -196,10 +185,7 @@ public class Sonhador {
             float yaw = locationInicial.getYaw();
             World world = player.getWorld();
             Location locationToTeleport = new Location(world, finalX, finalY, finalZ, yaw, pitch);
-            //player.setVelocity(new Vector(direcao.getX() * 1.2, 0.1, direcao.getZ() * 1.2));
             player.teleport(locationToTeleport);
-            //player.setVelocity(player.getVelocity().setY(0));
-            this.player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 1 * 20, 0));
             this.player.setFallDistance(0);
 
 
@@ -207,21 +193,11 @@ public class Sonhador {
                 double x_p1 = 1;
                 double y_p1 = 1;
 
-                //player.sendMessage(direcao.getX() + " " +  direcao.getY() + " " + direcao.getZ());
                 double z_p1 = (-direcao.getX() + -direcao.getY()) / direcao.getZ();
                 Vector holder = direcao.clone();
                 Vector direcao_perpendicular1 = new Vector(x_p1, y_p1, z_p1).normalize();
                 Vector direcao_perpendicular2 = (holder.crossProduct(direcao_perpendicular1)).normalize();
-            /*
-            player.sendMessage(direcao.getX() + " " +  direcao.getY() + " " + direcao.getZ());
-            player.sendMessage(direcao_perpendicular1.getX() + " " +  direcao_perpendicular1.getY() + " " +
-                    direcao_perpendicular1.getZ());
-            player.sendMessage(direcao_perpendicular2.getX() + " " +  direcao_perpendicular2.getY() + " " +
-                    direcao_perpendicular2.getZ());
-            player.sendMessage(String.valueOf(direcao.dot(direcao_perpendicular1)));
-            player.sendMessage(String.valueOf(direcao.dot(direcao_perpendicular2)));
-            player.sendMessage(String.valueOf(direcao_perpendicular1.dot(direcao_perpendicular2)));
-            */
+
                 double particle_x, particle_y, particle_z;
                 double radius = 0.10;
                 for (int i = 0; i < distancia; i++) {
@@ -230,16 +206,9 @@ public class Sonhador {
                     particle_z = posInicial.getZ() + i * direcao.getZ();
                     Vector vetor_inicial = new Vector(particle_x, particle_y, particle_z);
 
-                    //world.spawnParticle(Particle.ASH, particle_x, particle_y, particle_z, 15);
                     int iteracoes = 60;
                     for (int j = 0; j < iteracoes; j++) {
                         double t = j * 2*Math.PI / iteracoes;
-
-                    /*
-                    double x_t = 0;
-                    double y_t = radius * Math.sin(t);
-                    double z_t = radius * Math.cos(t);
-                    */
 
                         double m1 = radius * Math.sin(t);
                         double m2 = radius * Math.cos(t);
@@ -252,8 +221,6 @@ public class Sonhador {
 
                         v1.add(v2);
 
-                        //Vector vetor_t = new Vector(x_t, y_t, z_t);
-                        //Vector vetor_final = vetor_inicial.add(vetor_t);
                         Vector vetor_final = vetor_inicial.add(v1);
                         Location localizacao_particula = new Location(world, vetor_final.getX(), vetor_final.getY(), vetor_final.getZ());
                         world.spawnParticle(Particle.ASH, localizacao_particula, 10);
@@ -262,26 +229,28 @@ public class Sonhador {
             }
 
 
-            player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3 * 20, 1));
+            this.player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3 * 20, 1));
+            this.player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION,  30, 0));
 
             this.isOnCoolDownDash = true;
-            BukkitTask taskDash = new coolDownDash(this.plugin, this).runTaskLater(this.plugin, 3 * 20);
+            BukkitTask cd = new coolDownDash(this.plugin, this).runTaskLater(this.plugin, 3 * 20);
         }
     }
 
     public void puxao() {
         if (this.isOnCoolDownPuxao) {
-            player.sendMessage("Essa habilidade está em cooldwon");
+            player.sendMessage("Essa habilidade está em cooldown");
             return;
         }
-        List<Entity> entidades_proximas = this.player.getNearbyEntities(25, 25, 25);
+        List<Entity> entidades_proximas = this.player.getNearbyEntities(30, 30, 30);
+        int cdPuxao = 15;
+        boolean acertou = false;
         for (Entity entidade : entidades_proximas) {
             Location eye = this.player.getEyeLocation();
             Location entity_eye = Ajuda.get_eye_location(entidade);
             Vector toEntity = entity_eye.toVector().subtract(eye.toVector());
             double dot = toEntity.normalize().dot(eye.getDirection());
 
-            //player.sendMessage(String.valueOf(dot));
             if (dot >= 0.994D) {
                 Location player_location = this.player.getLocation();
                 Vector direction = this.player.getEyeLocation().getDirection();
@@ -291,16 +260,18 @@ public class Sonhador {
                 Location to_teleport = new Location(this.player.getWorld(), x, y, z);
                 entidade.teleport(to_teleport);
                 this.player.getWorld().playSound(player_location, Sound.ITEM_TRIDENT_HIT_GROUND, 1, 1);
+                cdPuxao = 4;
+                acertou = true;
             }
         }
         this.isOnCoolDownPuxao = true;
-        BukkitTask task = new coolDownPuxao(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
+        BukkitTask cd = new coolDownPuxao(this.plugin, this).runTaskLater(this.plugin, cdPuxao * 20);
+        if (!acertou) {
+            player.sendMessage("Não foi dessa vez...");
+        }
     }
 
-    public boolean getCoolDownTeleportar() {
-        return this.isOnCoolDownTeleportar;
-    }
-
+    // Cooldown e timers
     public void eraseCoolDownSuperPulo() {
         isOnCoolDownSuperPulo = false;
         player.sendMessage("O coolDown de " + ChatColor.BLUE + "Super Pulo" + " terminou");
@@ -339,5 +310,10 @@ public class Sonhador {
     }
     public void eraseComboCompleto() {
         this.comboCompleto = false;
+    }
+
+    // Getters
+    public boolean getCoolDownTeleportar() {
+        return this.isOnCoolDownTeleportar;
     }
 }

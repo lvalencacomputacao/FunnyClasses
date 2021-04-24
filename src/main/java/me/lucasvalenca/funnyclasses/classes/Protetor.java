@@ -37,6 +37,7 @@ public class Protetor {
     boolean isOnCoolDownPickThrow;
     boolean isOnCoolDownSpeedSpell;
     boolean isOnCoolDownPulo;
+    boolean isOnCoolDownSobreVisao;
 
     boolean isSegurando;
     boolean isPulando;
@@ -60,6 +61,7 @@ public class Protetor {
         this.isOnCoolDownPickThrow = false;
         this.isOnCoolDownSpeedSpell = false;
         this.isOnCoolDownPulo = false;
+        this.isOnCoolDownSobreVisao = false;
 
         this.isSegurando = false;
         this.player_segurado = null;
@@ -85,7 +87,7 @@ public class Protetor {
             player.sendMessage(playerParaCurar.getDisplayName() + " foi" + ChatColor.GOLD +  " PROTEGIDO!");
 
             this.isOnCoolDownHealWeapon = true;
-            BukkitTask cd = new coolDownHealWeapon(this.plugin, this).runTaskLater(this.plugin, 10 * 20);
+            BukkitTask cd = new coolDownHealWeapon(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
             this.world.playSound(this.player.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1, 2);
 
         }
@@ -102,7 +104,7 @@ public class Protetor {
             }
             player.sendMessage("As criaturas foram" + ChatColor.GREEN +  " enraizadas!");
             this.isOnCoolDownRoot = true;
-            BukkitTask cd = new coolDownRoot(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
+            BukkitTask cd = new coolDownRoot(this.plugin, this).runTaskLater(this.plugin, 10 * 20);
             this.world.playSound(this.player.getLocation(), Sound.ITEM_TRIDENT_HIT_GROUND, 1, 2);
         }
     }
@@ -262,7 +264,7 @@ public class Protetor {
         Vector direction = this.player.getEyeLocation().getDirection();
 
         this.player.eject();
-        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
+        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
 
         this.player_segurado.setVelocity(direction.multiply(1.5));
         if (this.player_segurado instanceof Player) {
@@ -276,7 +278,7 @@ public class Protetor {
         this.player.sendMessage("IH");
         this.player_segurado = null;
         this.isSegurando = false;
-        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
+        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
     }
 
     public void puloPesado() {
@@ -312,26 +314,47 @@ public class Protetor {
         }
     }
 
+    public void sobreVisao() {
+        if (this.isOnCoolDownSobreVisao) {
+            this.player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        List<Entity> entidades_proximas = this.player.getNearbyEntities(25, 20, 25);
+        for (Entity entity : entidades_proximas) {
+            if (entity instanceof LivingEntity) {
+                LivingEntity to_find = (LivingEntity) entity;
+                to_find.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 8 * 20, 0));
+            }
+        }
+        if (entidades_proximas.size() == 0) {
+            this.player.sendMessage("Parece que não há monstros por perto");
+        } else {
+            this.player.sendMessage("As paredes revelaram seus mistérios");
+        }
+        this.isOnCoolDownSobreVisao = true;
+        BukkitTask cd = new coolDownSobreVisao(this.plugin, this).runTaskLater(this.plugin, 60 * 20);
+    }
+
     // Cooldown
     public void eraseCoolDownRoot() {
-        player.sendMessage("O coolDown de " + ChatColor.GREEN + "root" + " terminou");
+        this.player.sendMessage("O coolDown de " + ChatColor.GREEN + "root" + " terminou");
         this.isOnCoolDownRoot = false;
     }
     public void eraseCoolDownHealWeapon() {
-        player.sendMessage("O coolDown de " + ChatColor.GREEN + "Heal Weapon" + " terminou");
+        this.player.sendMessage("O coolDown de " + ChatColor.GREEN + "Heal Weapon" + " terminou");
         this.isOnCoolDownHealWeapon = false;
     }
     public void eraseCoolDownMagicShield() {
-        player.sendMessage("O coolDown de " + ChatColor.LIGHT_PURPLE + "Magic Shield" + " terminou");
+        this.player.sendMessage("O coolDown de " + ChatColor.LIGHT_PURPLE + "Magic Shield" + " terminou");
         this.isOnCoolDownMagicShield = false;
     }
     public void eraseCoolDownSlimeSave() {
-        player.sendMessage("O coolDown de " + ChatColor.GREEN + "Slime Save" + "terminou");
+        this.player.sendMessage("O coolDown de " + ChatColor.GREEN + "Slime Save" + "terminou");
         this.isOnCoolDownSlimeSave = false;
     }
     public void eraseCoolDownPickThrow() {
         this.isOnCoolDownPickThrow = false;
-        this.player.sendMessage("O cooldown de " + ChatColor.LIGHT_PURPLE + "segurar players acabou!");
+        this.player.sendMessage("O cooldown de " + ChatColor.LIGHT_PURPLE + "Pick Throw acabou!");
     }
     public void eraseCoolDownSpeedSpell() {
         this.isOnCoolDownSpeedSpell = false;
@@ -340,6 +363,10 @@ public class Protetor {
     public void eraseCoolDownPulo() {
         this.isOnCoolDownPulo = false;
         this.player.sendMessage("O cooldown de " + ChatColor.LIGHT_PURPLE + "Pulo Pesado acabou");
+    }
+    public void eraseCoolDownSobreVisao() {
+        this.isOnCoolDownSobreVisao = false;
+        this.player.sendMessage("O cooldown de " + ChatColor.WHITE + "Sobre Visão acabou");
     }
 
     // Remove blocos de magia (Bonus: Recebe proteção)

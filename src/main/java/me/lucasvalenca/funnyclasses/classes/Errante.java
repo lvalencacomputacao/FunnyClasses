@@ -3,6 +3,9 @@ package me.lucasvalenca.funnyclasses.classes;
 import me.lucasvalenca.funnyclasses.FunnyClasses;
 import me.lucasvalenca.funnyclasses.tasks.askToRemoveIsLightningStrike;
 import me.lucasvalenca.funnyclasses.tasks.askToRemoveIsSubindo;
+import me.lucasvalenca.funnyclasses.tasks.coolDownBombardear;
+import me.lucasvalenca.funnyclasses.tasks.coolDownTrovejar;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -19,9 +22,15 @@ public class Errante {
     int direcao_vertical;
     boolean isStrikingLightning;
 
+    boolean isOnCoolDownTrovejar;
+    boolean isOnCoolDownDestruir;
+
     public Errante(Player player, FunnyClasses plugin) {
         this.player = player;
         this.plugin = plugin;
+
+        this.isOnCoolDownTrovejar = false;
+        this.isOnCoolDownDestruir = false;
 
         this.nivel = 0;
         this.isSubindo = false;
@@ -33,13 +42,8 @@ public class Errante {
 
     public void carro(Vehicle carro) {
 
-        Location looking_location  = player.getTargetBlock(null, 1000).getLocation();
-        Location current_location = player.getLocation();
-
-        Vector posFinal = new Vector(looking_location.getX(), 0, looking_location.getZ());
-        Vector posInicial = new Vector(current_location.getX(), 0, current_location.getZ());
-
-        Vector direction = posFinal.subtract(posInicial).normalize();
+        Vector direction = this.player.getEyeLocation().getDirection();
+        Location looking_location  = player.getTargetBlock(null, 100).getLocation();
 
         double incremento_se_subindo = this.isSubindo ? 0.5 * this.direcao_vertical : 0;
         Vector vector = new Vector(direction.getX(), incremento_se_subindo, direction.getZ());
@@ -49,8 +53,6 @@ public class Errante {
         if (isStrikingLightning) {
             world.strikeLightning(looking_location);
         }
-
-        //carro.setVelocity(carro.getVelocity().multiply(4));
     }
 
     public void subir_carro() {
@@ -64,13 +66,19 @@ public class Errante {
     }
 
     public void trovejar() {
-        isStrikingLightning = true;
+        if (this.isOnCoolDownTrovejar) {
+            this.player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        this.isStrikingLightning = true;
         BukkitTask task = new askToRemoveIsLightningStrike(this.plugin, this).runTaskLater(this.plugin, 6);
+        this.isOnCoolDownTrovejar = true;
+        BukkitTask cd = new coolDownTrovejar(this.plugin, this).runTaskLater(this.plugin, 12 * 20);
+
     }
 
     public void takeOffIsSubindo() {
         this.isSubindo = false;
-        player.sendMessage("Deu certo");
     }
 
     public void set_direcao_vertical(int direcao) {
@@ -79,19 +87,36 @@ public class Errante {
 
     public void takeOffIsLightningStrike() {
         isStrikingLightning = false;
-        player.sendMessage("Deu certo");
     }
 
     public void destruir() {
-        Location looking_location  = player.getTargetBlock(null, 1000).getLocation();
-        Location current_location = player.getLocation();
+        if (this.isOnCoolDownDestruir) {
+            this.player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        Vector direction;
+        Location current_location = this.player.getLocation();
+        if (this.player.isInsideVehicle() && (this.player.getVehicle() instanceof Boat)) {
+            direction = new Vector(0, -2, 0);
+        } else {
+            direction = this.player.getEyeLocation().getDirection();
+        }
 
-        Vector posFinal = new Vector(looking_location.getX(), looking_location.getY(), looking_location.getZ());
-        Vector posInicial = new Vector(current_location.getX(), current_location.getY(), current_location.getZ());
-
-        Vector direction = posFinal.subtract(posInicial).normalize();
-        TNTPrimed tnt = player.getWorld().spawn(current_location, TNTPrimed.class);
+        TNTPrimed tnt = this.player.getWorld().spawn(current_location, TNTPrimed.class);
         tnt.setFuseTicks(30);
         tnt.setVelocity(direction.multiply(1));
+
+        this.isOnCoolDownDestruir = true;
+        BukkitTask cd = new coolDownBombardear(this.plugin, this).runTaskLater(this.plugin, 6 * 20);
+    }
+
+    // CoolDown
+    public void eraseCoolDownTrovejar() {
+        this.isOnCoolDownTrovejar = false;
+        this.player.sendMessage("O coolDown de " + ChatColor.BLUE + "Trovejar" + " terminou");
+    }
+    public void eraseCoolDownBombardear() {
+        this.isOnCoolDownDestruir = false;
+        this.player.sendMessage("O coolDown de " + ChatColor.RED + "Bombardear" + " terminou");
     }
 }

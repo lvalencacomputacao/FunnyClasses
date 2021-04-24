@@ -7,10 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -84,7 +81,7 @@ public class Arquiteto {
     public void setOffIsBuildingBridge() {
         this.isBuildingBridge_ = false;
     }
-    //faz os pauses aí
+
     public void setPauseIsBuildingBridge() {
         if (!isBuildingBridgePause_) {
             player.setVelocity(player.getVelocity().setY(0));
@@ -110,14 +107,8 @@ public class Arquiteto {
                 this.deslocadorDeMateriaCounter++;
                 player.sendMessage("Primeiro bloco selecionado!");
                 player.sendMessage("Bloco selecionado: " + this.block_inicio.getType().name());
-                /*
-                player.sendMessage(String.valueOf(block_inicio.getX()));
-                player.sendMessage(String.valueOf(block_inicio.getY()));
-                player.sendMessage(String.valueOf(block_inicio.getZ()));
-                player.sendMessage(String.valueOf(block_inicio.getType()));
-
-                 */
                 break;
+
             case 1:
                 this.block_fim = player.getTargetBlock(null, 4);
                 if (this.block_inicio.getType() == Material.AIR) {
@@ -134,22 +125,6 @@ public class Arquiteto {
                 this.deslocamento_y = Math.abs(block_inicio.getY() - block_fim.getY()) + 1;
                 this.deslocamento_z = Math.abs(block_inicio.getZ() - block_fim.getZ()) + 1;
 
-                /*
-                player.sendMessage("Valor de x_inicial: " + String.valueOf(x_inicial));
-                player.sendMessage("Valor de y_inicial: " + String.valueOf(y_inicial));
-                player.sendMessage("Valor de z_inicial: " + String.valueOf(z_inicial));
-
-                player.sendMessage("Valor de del_x: " + String.valueOf(deslocamento_x));
-                player.sendMessage("Valor de del_y: " + String.valueOf(deslocamento_y));
-                player.sendMessage("Valor de del_z: " + String.valueOf(deslocamento_z));
-
-
-                player.sendMessage(String.valueOf(block_fim.getX()));
-                player.sendMessage(String.valueOf(block_fim.getY()));
-                player.sendMessage(String.valueOf(block_fim.getZ()));
-                player.sendMessage(String.valueOf(block_fim.getType()));
-                 */
-
                 player.sendMessage("Segundo bloco selecionado!");
                 player.sendMessage("Bloco selecionado: " + this.block_fim.getType().name());
                 this.blocos = new Block[this.deslocamento_x][this.deslocamento_y][this.deslocamento_z];
@@ -164,29 +139,17 @@ public class Arquiteto {
                             Location localizacao_atual = new Location(player.getWorld(), x_atual, y_atual, z_atual);
 
                             this.blocos[i][j][k] = localizacao_atual.getBlock();
-                            /*
-                            player.sendMessage(String.valueOf(this.blocos[i][j][k]));
-                            player.sendMessage("\n");
-                            player.sendMessage("x atual = " + localizacao_atual.getX());
-                            player.sendMessage("y atual = " + localizacao_atual.getY());
-                            player.sendMessage("z atual = " + localizacao_atual.getZ());
-                            player.sendMessage("\n");
-                             */
                         }
                     }
                 }
-
-
-
-                //player.sendMessage(String.valueOf(this.blocos[2][1][3]));
                 break;
+
             case 2:
                 player.sendMessage("Cancelou");
                 this.deslocadorDeMateriaCounter = 0;
         }
     }
 
-    // Melhorar
     public void deslocadorDeMateriaExecutar() {
         if (deslocadorDeMateriaCounter != 2) {
             player.sendMessage("Declare os pontos primeiro!");
@@ -198,14 +161,6 @@ public class Arquiteto {
         }
 
         Block block = player.getTargetBlock(null, 15);
-        /*
-        if (block.getType() == Material.AIR) {
-            player.sendMessage("Longe demais, tente se aproximar mais do bloco");
-            return;
-        }
-
-
-         */
         int direcao_x;
         int direcao_z;
         int direcao_y;
@@ -235,20 +190,13 @@ public class Arquiteto {
                     localizacao_atual.getBlock().setType(blocos[i][j][k].getType());
                     blocos[i][j][k].setType(Material.AIR);
                     blocos[i][j][k] = localizacao_atual.getBlock();
-                            /*
-                            player.sendMessage("\n");
-                            player.sendMessage("x atual = " + localizacao_atual.getX());
-                            player.sendMessage("y atual = " + localizacao_atual.getY());
-                            player.sendMessage("z atual = " + localizacao_atual.getZ());
-                            player.sendMessage("\n");
-                             */
                 }
             }
         }
         BukkitTask task = new coolDownReplicadorDeMateria(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
         this.isOnCoolDownReplicadorDeMateria = true;
     }
-    // Falta tirar dano de queda enquanto tá no ar do gancho
+
     public void ganchoDeslocador() {
         if (this.isOnCoolDownGanchoDeslocador) {
             player.sendMessage("Habilidade em cooldown");
@@ -307,18 +255,15 @@ public class Arquiteto {
 
     public void atirar() {
         Vector direction = this.player.getEyeLocation().getDirection();
-        this.player.launchProjectile(Arrow.class, direction.multiply(2));
+
+        this.player.launchProjectile(AbstractArrow.class, direction.multiply(2)).setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
     }
 
-    public boolean getAtirando() {
-        return this.atirando;
-    }
-
+    // CoolDown e outros timers
     public void eraseCoolDownSuperPonte() {
         this.isOnCoolDownSuperPonte = false;
         player.sendMessage("O coolDown de " + ChatColor.BLUE + "Super Ponte" + " terminou");
     }
-
     public void eraseCoolDownGanchoDeslocador() {
         this.isOnCoolDownGanchoDeslocador = false;
         player.sendMessage("O coolDown de " + ChatColor.RED + "Gancho Deslocador" + " terminou");
@@ -338,5 +283,10 @@ public class Arquiteto {
     public void eraseAtirando() {
         player.sendMessage("Parou de atirar");
         this.atirando = false;
+    }
+
+    // Getters
+    public boolean getAtirando() {
+        return this.atirando;
     }
 }
