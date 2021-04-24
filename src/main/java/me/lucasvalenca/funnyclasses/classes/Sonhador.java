@@ -169,7 +169,7 @@ public class Sonhador {
         this.player.teleport(player_location);
         //TNTPrimed tnt = this.player.getWorld().spawn(damaged.getLocation(), TNTPrimed.class);
         //tnt.setFuseTicks(5);
-        this.player.getWorld().createExplosion(damaged.getLocation(), 3, false, false);
+        this.player.getWorld().createExplosion(damaged.getLocation(), 2, false, false);
         this.player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 2 * 20, 2));
         //this.isOnCoolDownTNTCombo = !(resetarCoolDown || resetarCoolDown2);
         //BukkitTask task = new coolDownTNTCombo(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
@@ -264,11 +264,6 @@ public class Sonhador {
 
             player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 3 * 20, 1));
 
-            //World world = player.getWorld();
-            //Vector posToTeleport = posInicial.add(deslocamento.multiply(5));
-            // Location locationToTeleport = new Location(world, posToTeleport.getX(), posToTeleport.getY(), posToTeleport.getZ());
-            //player.teleport(locationToTeleport);
-
             this.isOnCoolDownDash = true;
             BukkitTask taskDash = new coolDownDash(this.plugin, this).runTaskLater(this.plugin, 3 * 20);
         }
@@ -279,7 +274,7 @@ public class Sonhador {
             player.sendMessage("Essa habilidade está em cooldwon");
             return;
         }
-        List<Entity> entidades_proximas = this.player.getNearbyEntities(25, 5, 25);
+        List<Entity> entidades_proximas = this.player.getNearbyEntities(25, 25, 25);
         for (Entity entidade : entidades_proximas) {
             Location eye = this.player.getEyeLocation();
             Location entity_eye = Ajuda.get_eye_location(entidade);

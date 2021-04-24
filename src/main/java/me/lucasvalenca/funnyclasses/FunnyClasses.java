@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -122,7 +123,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
                     player.getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
                 Entity entidadeMachucada = event.getEntity();
                 event.setCancelled(true);
-                protetorOfPlayer.get(player).HealWeapon(entidadeMachucada);
+                protetorOfPlayer.get(player).HealWeaponOrRoot(entidadeMachucada);
             }
         }
         return true;
@@ -182,6 +183,19 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
             }
         }
 
+        return true;
+    }
+
+    @EventHandler
+    public boolean entityDeath(EntityDeathEvent event) {
+        System.out.println("Chegou aqui");
+        for (Map.Entry<Player, Protetor> entry : protetorOfPlayer.entrySet()) {
+            Entity holded = entry.getValue().getHolded();
+            Entity dead_entity = event.getEntity();
+            if (holded == dead_entity) {
+                entry.getValue().holdedMorto();
+            }
+        }
         return true;
     }
 
