@@ -1,14 +1,10 @@
 package me.lucasvalenca.funnyclasses;
 
-import me.lucasvalenca.funnyclasses.classes.Arquiteto;
-import me.lucasvalenca.funnyclasses.classes.Errante;
-import me.lucasvalenca.funnyclasses.classes.Protetor;
-import me.lucasvalenca.funnyclasses.classes.Sonhador;
+import me.lucasvalenca.funnyclasses.classes.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Boat;
@@ -27,7 +23,6 @@ import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +35,9 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
     Map<Player, Sonhador> sonhadorOfPlayer = new HashMap<Player, Sonhador>();
     Map<Player, Arquiteto> arquitetoOfPlayer = new HashMap<Player, Arquiteto>();
     Map<Player, Errante> erranteOfPlayer = new HashMap<Player, Errante>();
+    Map<Player, Visionario> visionarioOfPlayer = new HashMap<Player, Visionario>();
+    Map<Player, Melancia> melanciaOfPlayer = new HashMap<Player, Melancia>();
+    Map<Player, Teste> testeOfPlayer = new HashMap<Player, Teste>();
 
     boolean lightmode = false;
 
@@ -84,9 +82,26 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
                 erranteOfPlayer.put(player, errante);
 
                 player.sendMessage("Você agora é um " + ChatColor.GREEN + "Errante");
+            } else if (className.equalsIgnoreCase("Visionario")) {
+                Visionario visionario = new Visionario(player, this);
+                classOfPlayer.put(player, "Visionario");
+                visionarioOfPlayer.put(player, visionario);
+
+                player.sendMessage("Você agora é um " + ChatColor.GOLD + "Visionário");
+            } else if (className.equalsIgnoreCase("Melancia")) {
+                Melancia melancia = new Melancia(player, this);
+                classOfPlayer.put(player, "Melancia");
+                melanciaOfPlayer.put(player, melancia);
+
+                player.sendMessage("Você agora é uma " + ChatColor.GREEN + "Melancia");
+            } else if (className.equalsIgnoreCase("Teste")) {
+                Teste teste = new Teste(player, this);
+                classOfPlayer.put(player, "Teste");
+                testeOfPlayer.put(player, teste);
+
+                player.sendMessage("Debugging iniciado");
             }
-        }
-        else if (command.getName().equalsIgnoreCase("lightmode") && sender instanceof Player) {
+        } else if (command.getName().equalsIgnoreCase("lightmode") && sender instanceof Player) {
             Player player = (Player) sender;
             if (args.length != 1) {
                 player.sendMessage("Falta de argumentos. Use '/lightmode on' para ligar o lightmode ou" +
@@ -120,10 +135,15 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             String result = classOfPlayer.get(player);
             if (classOfPlayer.get(player) != null && classOfPlayer.get(player).equals("Protetor") &&
-                    player.getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
+                    player.getInventory().getItemInMainHand().getType() == Material.WOODEN_SHOVEL) {
                 Entity entidadeMachucada = event.getEntity();
                 event.setCancelled(true);
                 protetorOfPlayer.get(player).HealWeaponOrRoot(entidadeMachucada);
+            } else if (classOfPlayer.get(player) != null && classOfPlayer.get(player).equals("Protetor") &&
+                    player.getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE) {
+                Entity entidadeAlvo = event.getEntity();
+                event.setCancelled(true);
+                protetorOfPlayer.get(player).Pancada(entidadeAlvo);
             }
         }
         return true;
@@ -142,9 +162,8 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
                     protetorOfPlayer.get(player).mudarMagia();
                 }
             }
-        }
-        else if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_SWORD
-            && classOfPlayer.get(player).equalsIgnoreCase("Protetor")) {
+        } else if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_SWORD
+                && classOfPlayer.get(player).equalsIgnoreCase("Protetor")) {
             if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
                 if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                     protetorOfPlayer.get(player).puloPesado();
@@ -165,7 +184,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
     public boolean onMoveProtetor(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (classOfPlayer.containsKey(player) && classOfPlayer.get(player).equalsIgnoreCase("Protetor")
-            && protetorOfPlayer.get(player).getIsPulando()) {
+                && protetorOfPlayer.get(player).getIsPulando()) {
             Location loc = player.getLocation();
             Location block_to_check = new Location(player.getWorld(), loc.getX(), loc.getY() - 2, loc.getZ());
 
@@ -184,8 +203,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         if (classOfPlayer.containsKey(player) && classOfPlayer.get(player).equals("Protetor")) {
             if (player.isSneaking()) {
                 protetorOfPlayer.get(player).jogarPlayer();
-            }
-            else {
+            } else {
                 protetorOfPlayer.get(player).pegarPlayer(event.getRightClicked());
             }
         }
@@ -223,7 +241,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
                 }
             }
         } else if (player.getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE
-        && classOfPlayer.get(player).equals("Sonhador")) {
+                && classOfPlayer.get(player).equals("Sonhador")) {
             if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
                 if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                     sonhadorOfPlayer.get(player).puxao();
@@ -239,7 +257,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         Entity damager = event.getDamager();
         if (damager instanceof Player) {
             if (classOfPlayer.containsKey(damager) && classOfPlayer.get(damager).equalsIgnoreCase("Sonhador")
-                && sonhadorOfPlayer.get(damager).getCoolDownTeleportar()) {
+                    && sonhadorOfPlayer.get(damager).getCoolDownTeleportar()) {
                 sonhadorOfPlayer.get(damager).TNTCombo(event.getEntity());
             }
         }
@@ -334,7 +352,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         if (classOfPlayer.containsKey(player) && classOfPlayer.get(player).equals("Arquiteto")) {
             if (arquitetoOfPlayer.get(player).isBuildingBridge() &&
-            arquitetoOfPlayer.get(player).isBuildingBridgePause()) {
+                    arquitetoOfPlayer.get(player).isBuildingBridgePause()) {
                 Location location = player.getLocation();
 
                 double x = location.getX();
@@ -403,8 +421,72 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         return true;
     }
 
+    // Para visionarios
+    @EventHandler
+    public boolean onClickVisionario(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_HOE
+                && classOfPlayer.get(player).equals("Visionario")) {
+            if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    visionarioOfPlayer.get(player).atirar();
+                }
+                if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                    visionarioOfPlayer.get(player).tiro_deslocador();
+                }
+            }
+        } else if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_AXE
+                && classOfPlayer.get(player).equals("Visionario")) {
+            if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    visionarioOfPlayer.get(player).explodir();
+                }
+            }
+        } else if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_SWORD
+                && classOfPlayer.get(player).equals("Visionario")) {
+            if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    visionarioOfPlayer.get(player).teleport();
+                }
+            }
+        }
+        return true;
+    }
 
+    @EventHandler
+    public boolean onHitVisionario(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player) {
+            Player damager = (Player) event.getDamager();
+            if (classOfPlayer.containsKey(damager) && classOfPlayer.get(damager).equals("Visionario")) {
+                event.setCancelled(true);
+            }
+        }
+        return true;
+    }
 
+    // Para melancias
+    public boolean onMoveMelancia(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (classOfPlayer.get(player).equals("Melancia")) {
+            player.setWalkSpeed(0);
+        }
+        return true;
+    }
+
+    // Debugging
+    @EventHandler
+    public void onClickTeste(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (classOfPlayer.containsKey(player) && player.getInventory().getItemInMainHand().getType() == Material.WOODEN_HOE
+                && classOfPlayer.get(player).equals("Teste")) {
+            if (event.getHand() != null && event.getHand() == EquipmentSlot.HAND) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    testeOfPlayer.get(player).testa_1();
+                }
+            }
+        }
+    }
+}
     // testing
     /*
     @EventHandler
@@ -432,4 +514,3 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         return true;
     }
     */
-}

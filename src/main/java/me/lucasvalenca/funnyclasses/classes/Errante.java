@@ -65,18 +65,6 @@ public class Errante {
         BukkitTask task = new askToRemoveIsSubindo(this.plugin, this).runTaskLater(this.plugin, 20);
     }
 
-    public void trovejar() {
-        if (this.isOnCoolDownTrovejar) {
-            this.player.sendMessage("A habilidade está em cooldown");
-            return;
-        }
-        this.isStrikingLightning = true;
-        BukkitTask task = new askToRemoveIsLightningStrike(this.plugin, this).runTaskLater(this.plugin, 6);
-        this.isOnCoolDownTrovejar = true;
-        BukkitTask cd = new coolDownTrovejar(this.plugin, this).runTaskLater(this.plugin, 12 * 20);
-
-    }
-
     public void takeOffIsSubindo() {
         this.isSubindo = false;
     }
@@ -87,6 +75,18 @@ public class Errante {
 
     public void takeOffIsLightningStrike() {
         isStrikingLightning = false;
+    }
+
+    public void trovejar() {
+        if (this.isOnCoolDownTrovejar) {
+            this.player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        this.isStrikingLightning = true;
+        BukkitTask task = new askToRemoveIsLightningStrike(this.plugin, this).runTaskLater(this.plugin, 6);
+        this.isOnCoolDownTrovejar = true;
+        BukkitTask cd = new coolDownTrovejar(this.plugin, this).runTaskLater(this.plugin, 12 * 20);
+
     }
 
     public void destruir() {

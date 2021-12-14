@@ -4,10 +4,7 @@ import me.lucasvalenca.funnyclasses.FunnyClasses;
 import me.lucasvalenca.funnyclasses.ajuda.Ajuda;
 import me.lucasvalenca.funnyclasses.tasks.*;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
@@ -16,6 +13,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import me.lucasvalenca.funnyclasses.ajuda.Ajuda;
@@ -38,6 +36,8 @@ public class Protetor {
     boolean isOnCoolDownSpeedSpell;
     boolean isOnCoolDownPulo;
     boolean isOnCoolDownSobreVisao;
+    boolean isOnCoolDownPancada;
+    boolean isOnCoolDownProtectorsHeart;
 
     boolean isSegurando;
     boolean isPulando;
@@ -47,6 +47,10 @@ public class Protetor {
     String[] Magias;
 
     Ajuda ajuda;
+
+    boolean isArremessado;
+    double currentVelocityX;
+    double currentVelocityZ;
 
     public Protetor(Player player, FunnyClasses plugin) {
         this.player = player;
@@ -62,15 +66,21 @@ public class Protetor {
         this.isOnCoolDownSpeedSpell = false;
         this.isOnCoolDownPulo = false;
         this.isOnCoolDownSobreVisao = false;
+        this.isOnCoolDownPancada = false;
+        isOnCoolDownProtectorsHeart = false;
 
         this.isSegurando = false;
         this.player_segurado = null;
         this.isPulando = false;
         this.blocosMagicShield = new ArrayList<Block>();
-        this.Magias = new String[]{"MagicShield", "SlimeSave", "SpeedSpell"};
+        this.Magias = new String[]{"MagicShield", "SlimeSave", "SpeedSpell", "ProtectorsHeart"};
 
         this.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(16);
         this.player.setHealthScale(16);
+
+        this.isArremessado = false;
+        this.currentVelocityX = 0;
+        this.currentVelocityZ = 0;
 
         this.ajuda = new Ajuda();
     }
@@ -87,7 +97,11 @@ public class Protetor {
             player.sendMessage(playerParaCurar.getDisplayName() + " foi" + ChatColor.GOLD +  " PROTEGIDO!");
 
             this.isOnCoolDownHealWeapon = true;
-            BukkitTask cd = new coolDownHealWeapon(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+                public void run() {
+                    Protetor.this.eraseCoolDownHealWeapon();
+                }
+            }, 15*10L);
             this.world.playSound(this.player.getLocation(), Sound.ITEM_TRIDENT_THUNDER, 1, 2);
 
         }
@@ -104,9 +118,54 @@ public class Protetor {
             }
             player.sendMessage("As criaturas foram" + ChatColor.GREEN +  " enraizadas!");
             this.isOnCoolDownRoot = true;
-            BukkitTask cd = new coolDownRoot(this.plugin, this).runTaskLater(this.plugin, 10 * 20);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+                public void run() {
+                    Protetor.this.eraseCoolDownRoot();
+                }
+            }, 10 * 20L);
             this.world.playSound(this.player.getLocation(), Sound.ITEM_TRIDENT_HIT_GROUND, 1, 2);
         }
+    }
+
+    public void Pancada(Entity entidade) {
+        if (this.isOnCoolDownPancada) {
+            this.player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        Vector direction = this.player.getEyeLocation().getDirection();
+        double intensity = 4;
+        entidade.setVelocity(direction.multiply(intensity));
+        this.isArremessado = true;
+        this.isOnCoolDownPancada = true;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.isArremessado = false;
+            }
+        }, 3*20L);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownPancada();
+            }
+        }, 20*20L);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!Protetor.this.isArremessado) {
+                    cancel();
+                    return;
+                }
+                double velX = entidade.getVelocity().getX();
+                double velZ = entidade.getVelocity().getZ();
+                if (Math.abs(velX - Protetor.this.currentVelocityX) > 0.7 ||
+                Math.abs(velZ - Protetor.this.currentVelocityZ) > 0.7) {
+                    entidade.getWorld().createExplosion(entidade.getLocation(), 2);
+                } else {
+                    Protetor.this.currentVelocityX = velX;
+                    Protetor.this.currentVelocityZ = velZ;
+                }
+
+            }
+        }.runTaskTimer(this.plugin, 5, 1);
     }
 
     public void MagicShield() {
@@ -171,8 +230,16 @@ public class Protetor {
             }
         }
         isOnCoolDownMagicShield = true;
-        BukkitTask rm = new askToRemoveMagicShield(this.plugin, this).runTaskLater(this.plugin, 4 * 20);
-        BukkitTask cd = new coolDownMagicShield(this.plugin, this).runTaskLater(this.plugin, 30 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownMagicShield();
+            }
+        }, 30*20L);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.removeMagicShield();
+            }
+        }, 4*20L);
         this.world.playSound(this.player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
     }
 
@@ -203,7 +270,11 @@ public class Protetor {
             }
         }
         this.isOnCoolDownSlimeSave = true;
-        BukkitTask taskSlimeSave = new coolDownSlimeSave(this.plugin, this).runTaskLater(this.plugin, 30 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownSlimeSave();
+            }
+        }, 30*20L);
         this.world.playSound(this.player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
     }
 
@@ -221,8 +292,33 @@ public class Protetor {
             }
         }
         this.isOnCoolDownSpeedSpell = true;
-        BukkitTask taskSlimeSave = new coolDownSpeedSpell(this.plugin, this).runTaskLater(this.plugin, 30 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownSpeedSpell();
+            }
+        }, 30*20L);
         this.world.playSound(this.player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 2);
+    }
+
+    public void ProtectorsHeart() {
+        if (this.isOnCoolDownProtectorsHeart) {
+            player.sendMessage("A habilidade está em cooldown");
+            return;
+        }
+        player.sendMessage(ChatColor.GOLD + "Proteger!");
+        List<Entity> entidades_proximas = this.player.getNearbyEntities(8, 8, 8);
+        for (Entity entity : entidades_proximas) {
+            if (entity instanceof Player) {
+                receberEscudo((LivingEntity) entity, 1);
+            }
+        }
+        this.isOnCoolDownProtectorsHeart = true;
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownProtectorsHeart();
+            }
+        }, 12*20L);
+
     }
 
     // Muda a magia atual
@@ -242,6 +338,9 @@ public class Protetor {
                 break;
             case "SpeedSpell":
                 this.SpeedSpell();
+                break;
+            case "ProtectorsHeart":
+                this.ProtectorsHeart();
                 break;
         }
     }
@@ -264,8 +363,11 @@ public class Protetor {
         Vector direction = this.player.getEyeLocation().getDirection();
 
         this.player.eject();
-        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
-
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownPickThrow();
+            }
+        }, 15*20L);
         this.player_segurado.setVelocity(direction.multiply(1.5));
         if (this.player_segurado instanceof Player) {
             receberEscudo((Player) this.player_segurado, 2);
@@ -278,7 +380,11 @@ public class Protetor {
         this.player.sendMessage("IH");
         this.player_segurado = null;
         this.isSegurando = false;
-        BukkitTask cd = new coolDownPickThrow(this.plugin, this).runTaskLater(this.plugin, 15 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownPickThrow();
+            }
+        }, 15*20L);
     }
 
     public void puloPesado() {
@@ -290,7 +396,11 @@ public class Protetor {
         receberEscudo(this.player, 3);
         this.isPulando = true;
         this.isOnCoolDownPulo = true;
-        BukkitTask cd = new coolDownPulo(this.plugin, this).runTaskLater(this.plugin, 20 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownPulo();
+            }
+        }, 20*20L);
     }
 
     public void fim_pulo() {
@@ -332,7 +442,11 @@ public class Protetor {
             this.player.sendMessage("As paredes revelaram seus mistérios");
         }
         this.isOnCoolDownSobreVisao = true;
-        BukkitTask cd = new coolDownSobreVisao(this.plugin, this).runTaskLater(this.plugin, 60 * 20);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, new Runnable() {
+            public void run() {
+                Protetor.this.eraseCoolDownSobreVisao();
+            }
+        }, 60*20L);
     }
 
     // Cooldown
@@ -367,6 +481,14 @@ public class Protetor {
     public void eraseCoolDownSobreVisao() {
         this.isOnCoolDownSobreVisao = false;
         this.player.sendMessage("O cooldown de " + ChatColor.WHITE + "Sobre Visão acabou");
+    }
+    public void eraseCoolDownPancada() {
+        this.isOnCoolDownPancada = false;
+        this.player.sendMessage("O cooldown de " + ChatColor.RED + "Pancada acabou");
+    }
+    public void eraseCoolDownProtectorsHeart() {
+        this.isOnCoolDownProtectorsHeart = false;
+        this.player.sendMessage("O cooldown de " + ChatColor.GOLD + "Protectors Heart acabou");
     }
 
     // Remove blocos de magia (Bonus: Recebe proteção)
@@ -406,4 +528,5 @@ public class Protetor {
     public Entity getHolded() {
         return this.player_segurado;
     }
+    public boolean getIsArremessado() {return this.isArremessado;}
 }
