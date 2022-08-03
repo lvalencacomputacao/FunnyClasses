@@ -52,7 +52,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
     public void onDisable() {
         // Plugin shutdown logic
     }
-
+    //aldksaks
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -465,7 +465,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         return true;
     }
 
-    // Para melancias
+    @EventHandler //Para melancias
     public boolean onMoveMelancia(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (classOfPlayer.get(player).equals("Melancia")) {
