@@ -53,6 +53,7 @@ public final class FunnyClasses extends JavaPlugin implements Listener {
         // Plugin shutdown logic
     }
 
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("escolher") && (sender instanceof Player) && args.length == 1) {
